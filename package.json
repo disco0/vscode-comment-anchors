@@ -354,7 +354,7 @@
 	"devDependencies": {
 		"@types/debounce": "^1.0.0",
 		"@types/mocha": "^2.2.42",
-		"@types/node": "^7.0.43",
+		"@types/node": "^12.12.22",
 		"typescript": "^2.6.1",
 		"vscode": "^1.1.36"
 	},
