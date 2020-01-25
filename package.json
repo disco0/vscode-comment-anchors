@@ -83,7 +83,7 @@
 				"commentAnchors.anchorCompletion": {
 					"type": "boolean",
 					"default": true,
-					"description": "Whether or not to show completion for anchors",
+					"description": "Whether to show completion for anchors",
 					"scope": "window"
 				},
 				"commentAnchors.tagHighlights.enabled": {
