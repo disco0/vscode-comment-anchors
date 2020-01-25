@@ -130,7 +130,7 @@ export class AnchorEngine {
 		// Build required anchor resources
 		this.buildResources();
 
-		
+  
 	}
 
 	registerProviders()	{
@@ -155,33 +155,35 @@ export class AnchorEngine {
 		}
 
 		this._debug.appendLine(`launchers: ${launchers}`);
-		
-		this._subscriptions.push(languages.registerCompletionItemProvider({language: '*'}, {
-			provideCompletionItems: () : ProviderResult<CompletionList> => {
-				const ret = new CompletionList();
-				const separator = this._config!.tags.separators[0];
+  
+		if(this._config!.anchorCompletion) {
+			this._subscriptions.push(languages.registerCompletionItemProvider({language: '*'}, {
+				provideCompletionItems: () : ProviderResult<CompletionList> => {
+					const ret = new CompletionList();
+					const separator = this._config!.tags.separators[0];
 				
-				for(let tag of this.tags.values()) {
-					let item = new CompletionItem(tag.tag + " Anchor", CompletionItemKind.Event);
+					for(let tag of this.tags.values()) {
+						let item = new CompletionItem(tag.tag + " Anchor", CompletionItemKind.Event);
 					
-					item.documentation = `Insert a ${tag.tag} Comment Anchor`;
-					item.insertText = tag.tag + separator;
+						item.documentation = `Insert a ${tag.tag} Comment Anchor`;
+						item.insertText = tag.tag + separator;
 					
-					ret.items.push(item);
+						ret.items.push(item);
 
-					if(tag.isRegion) {
-						let endItem = new CompletionItem(endTag + tag.tag + " Anchor", CompletionItemKind.Event);
+						if(tag.isRegion) {
+							let endItem = new CompletionItem(endTag + tag.tag + " Anchor", CompletionItemKind.Event);
 					
-						endItem.documentation = `Insert a ${endTag + tag.tag} Comment Anchor`;
-						endItem.insertText = endTag + tag.tag + separator;
+							endItem.documentation = `Insert a ${endTag + tag.tag} Comment Anchor`;
+							endItem.insertText = endTag + tag.tag + separator;
 						
-						ret.items.push(endItem);
+							ret.items.push(endItem);
+						}
 					}
-				}
 				
-				return ret;
-			}
-		}, ...launchers));
+					return ret;
+				}
+			}, ...launchers));
+		}
 	}
 
 	buildResources() {
@@ -209,7 +211,7 @@ export class AnchorEngine {
 			if(config.scrollPosition) {
 				EntryAnchor.ScrollPosition = config.scrollPosition;
 			}
-			
+
 			// Create a map holding the tags
 			this.tags.clear();
 			this.anchorDecorators.forEach((type: TextEditorDecorationType) => type.dispose());
@@ -285,7 +287,7 @@ export class AnchorEngine {
 							borderRadius: tag.borderRadius + "px"
 						}
 					}
-					
+
 					// Create the decoration type
 					this.anchorDecorators.set(tag.tag, window.createTextEditorDecorationType(highlight));
 				}
@@ -298,8 +300,8 @@ export class AnchorEngine {
 			const endTag = this._config.tags.endTag;
 
 			this._debug.appendLine("endTag: " + endTag);
-			
-			this.tags.forEach((entry, tag) => { 
+
+			this.tags.forEach((entry, tag) => {
 				if(entry.isRegion) {
 					matchTags.push(endTag + tag);
 				}
@@ -339,7 +341,7 @@ export class AnchorEngine {
 				if(this._editor) {
 					this.addMap(this._editor!.document.uri);
 				}
-				
+
 				this.refresh();
 			}
 
@@ -386,7 +388,7 @@ export class AnchorEngine {
 				if(this._editor) {
 					this.addMap(this._editor!.document.uri);
 				}
-				
+
 				this.anchorsLoaded = true;
 				this.refresh();
 			}).catch(err => {
@@ -403,7 +405,7 @@ export class AnchorEngine {
 		var parseStatus = window.createStatusBarItem(StatusBarAlignment.Left, 0);
 		let parseCount: number = 0;
 		let parsePercentage: number = 0;
-		
+
 		parseStatus.tooltip = "Provided by the Comment Anchors extension";
 		parseStatus.text = `$(telescope) Parsing Comment Anchors... [0.0%]`;
 		parseStatus.show();
@@ -465,7 +467,7 @@ export class AnchorEngine {
 
 	/**
 	 * Parse the given or current document
-	 */	
+	 */
 	public parse(document: Uri) : Promise<void> {
 		return new Promise<void>(async (success, reject) => {
 			try {
@@ -477,7 +479,7 @@ export class AnchorEngine {
 						return false;
 					}
 				})
-				
+
 				if(text == null) {
 					text = await this.readDocument(document);
 				}
@@ -486,7 +488,7 @@ export class AnchorEngine {
 				let anchors: EntryAnchor[] = [];
 				let folds: FoldingRange[] = [];
 				let match;
-				
+
 				const config = this._config!!;
 				const endTag = config.tags.endTag;
 
@@ -526,7 +528,7 @@ export class AnchorEngine {
 					const endPos = startPos + rangeLength;
 					const deltaText = text.substr(0, startPos);
 					const lineNumber = deltaText.split(/\r\n|\r|\n/g).length;
-					
+
 					const comment = (match[5] || '').trim();
 					const display = config.tags.displayInSidebar ? match[2] + ": " + comment : comment;
 
@@ -556,7 +558,7 @@ export class AnchorEngine {
 							config.tags.displayLineNumber
 						);
 					}
-				
+
 					// Push this region onto the stack
 					if(isRegionStart) {
 						currRegions.push(anchor as EntryAnchorRegion);
@@ -583,7 +585,7 @@ export class AnchorEngine {
 			}
 		});
 	}
-	
+
 	/**
 	 * Refresh the visual representation of the anchors
 	 */
@@ -593,7 +595,7 @@ export class AnchorEngine {
 			const doc = document.uri;
 			const anchors =  this.anchorMaps.get(doc) || [];
 			const tags = new Map<string, [TextEditorDecorationType, DecorationOptions[]]>();
-			
+
 			// Create a mapping between tags and decorators
 			this.anchorDecorators.forEach((decorator: TextEditorDecorationType, tag: string) => {
 				tags.set(tag.toUpperCase(), [decorator, []]);
@@ -609,7 +611,7 @@ export class AnchorEngine {
 					}
 				});
 			}
-			
+
 			// Start by decorating the root list
 			applyDecorators(anchors);
 
@@ -621,11 +623,11 @@ export class AnchorEngine {
 
 		this._onDidChangeTreeData.fire();
 	}
-	
+
 
 	/**
 	 * Add a TextDocument mapping to the engine
-	 * 
+	 *
 	 * @param document TextDocument
 	 */
 	public addMap(document: Uri) : Thenable<void> {
@@ -646,7 +648,7 @@ export class AnchorEngine {
 
 	/**
 	 * Remove a TextDocument mapping from the engine
-	 * 
+	 *
 	 * @param editor textDocument
 	 */
 	public removeMap(document: Uri) {
@@ -686,7 +688,7 @@ export class AnchorEngine {
 
 	/**
 	 * Reads the document at the given Uri async
-	 * 
+	 *
 	 * @param path Document uri
 	 */
 	private readDocument(path: Uri) : Thenable<string> {
